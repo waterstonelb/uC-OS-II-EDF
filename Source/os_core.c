@@ -557,7 +557,7 @@ void  OSTimeTick (void)
             return;
         }
 #endif
-		OSTCBCur->C++;
+		OSTCBCur->C++;//新增内容，当前任务的已执行时长加1
 
         ptcb = OSTCBList;                                  /* Point at first TCB in TCB list               */
         while (ptcb->OSTCBPrio != OS_IDLE_PRIO) {          /* Go through all TCBs in TCB list              */

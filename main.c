@@ -84,7 +84,7 @@ void main(int argc, char *argv[])
 	OSTaskCreate(Task2, (void*)0, (OS_STK *)&AppStartTaskStk[1][TASK_STK_SIZE - 1], 2);
 	OSTaskCreate(Task3, (void*)0, (OS_STK *)&AppStartTaskStk[2][TASK_STK_SIZE - 1], 3);
 	OSTCBPrioTbl[1]->T = 4;//在TCB结构体新增T，C参数，在此处进行初始化
-	OSTCBPrioTbl[2]->T = 5;
+	OSTCBPrioTbl[2]->T = 5;//T为任务的当前截止时间，C为在最新周期内任务已执行的时间
 	OSTCBPrioTbl[3]->T = 10;
 	OSTCBPrioTbl[62]->T = -1;
 	OSTCBPrioTbl[63]->T = -1;
@@ -150,9 +150,9 @@ void  Task1(void *p_arg)//任务定义
 	INT8U err;//信号量错误地址
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
-		OSSemPend(xhl, 9999, &err);//上锁
+		//OSSemPend(xhl, 9999, &err);//上锁
 		while (OSTCBCur->C < C);//任务执行C个时间
-		OSSemPost(xhl);//解锁
+		//OSSemPost(xhl);//解锁
 		end = OSTimeGet();
 		toDly = OSTCBCur->T-end;
 		if (toDly < 0)
@@ -186,9 +186,9 @@ void  Task3(void *p_arg)
 	INT8U err;
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
-		OSSemPend(xhl, 9999, &err);
+		//OSSemPend(xhl, 9999, &err);
 		while (OSTCBCur->C < C);
-		OSSemPost(xhl);
+		//OSSemPost(xhl);
 		end = OSTimeGet();
 		toDly = OSTCBCur->T - end;
 		OSTCBCur->C = 0;
