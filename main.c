@@ -32,6 +32,7 @@
 */
 
 OS_STK        AppStartTaskStk[3][TASK_STK_SIZE];
+OS_EVENT  *   xhl;
 
 /*
 *********************************************************************************************************
@@ -68,6 +69,8 @@ void main(int argc, char *argv[])
 
     OSInit();                              /* Initialize "uC/OS-II, The Real-Time Kernel"                                      */
 
+	xhl = OSSemCreate(1);
+
     /*OSTaskCreateExt(AppStartTask,
                     (void *)0,
                     (OS_STK *)&AppStartTaskStk[TASK_STK_SIZE-1],
@@ -83,8 +86,8 @@ void main(int argc, char *argv[])
 	OSTCBPrioTbl[1]->T = 4;
 	OSTCBPrioTbl[2]->T = 5;
 	OSTCBPrioTbl[3]->T = 10;
-	OSTCBPrioTbl[62]->T = 100;
-	OSTCBPrioTbl[63]->T = 100;
+	OSTCBPrioTbl[62]->T = -1;
+	OSTCBPrioTbl[63]->T = -1;
 	OSTCBPrioTbl[1]->C = 0;
 	OSTCBPrioTbl[2]->C = 0;
 	OSTCBPrioTbl[3]->C = 0;
@@ -143,12 +146,19 @@ void  AppStartTask (void *p_arg)
 void  Task1(void *p_arg)
 {
 
-	int start = 0, end, toDly,C=1;
+	int start = 0, end, toDly, C = 1;
+	INT8U err;
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
+		OSSemPend(xhl, 9999, &err);
 		while (OSTCBCur->C < C);
+		OSSemPost(xhl);
 		end = OSTimeGet();
-		toDly = OSTCBCur->T-end+start;
+		toDly = OSTCBCur->T-end;
+		if (toDly < 0)
+		{
+			OS_Printf("\nfailed");
+		}
 		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 4;
@@ -164,7 +174,7 @@ void  Task2(void *p_arg)
 	{
 		while (OSTCBCur->C < C);
 		end = OSTimeGet();
-		toDly = OSTCBCur->T - end + start;
+		toDly = OSTCBCur->T - end;
 		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 5;
@@ -175,11 +185,14 @@ void  Task3(void *p_arg)
 {
 
 	int start = 0, end, toDly,C=2;
+	INT8U err;
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
+		OSSemPend(xhl, 9999, &err);
 		while (OSTCBCur->C < C);
+		OSSemPost(xhl);
 		end = OSTimeGet();
-		toDly = OSTCBCur->T - end + start;
+		toDly = OSTCBCur->T - end;
 		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 10;

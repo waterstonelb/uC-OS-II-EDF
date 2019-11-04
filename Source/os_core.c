@@ -1224,7 +1224,8 @@ static  void  OS_SchedNew (void)
     y             = OSUnMapTbl[OSRdyGrp];
     OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);*/
 	OS_TCB * temp = OSTCBList;
-	int prio = 0, max = 9999;
+	INT8U prio = OS_LOWEST_PRIO;
+	INT32U max = -1;
 	while (temp)
 	{
 		int ready = OSRdyTbl[temp->OSTCBY]& temp->OSTCBBitX;
