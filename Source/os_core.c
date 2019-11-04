@@ -335,7 +335,7 @@ void  OSIntExit (void)
                     OSTCBHighRdy->OSTCBCtxSwCtr++;         /* Inc. # of context switches to this task  */
 #endif
                     OSCtxSwCtr++;                          /* Keep track of the number of ctx switches */
-					printf("\n%2d %s %2d %2d", OSTime, "Preempt", OSPrioCur, OSPrioHighRdy);
+					OS_Printf("\n%2d %s %2d %2d", OSTime, "Preempt", OSPrioCur, OSPrioHighRdy);
 
                     OSIntCtxSw();                          /* Perform interrupt level ctx switch       */
                 }
@@ -1189,7 +1189,7 @@ void  OS_Sched (void)
                 OSTCBHighRdy->OSTCBCtxSwCtr++;         /* Inc. # of context switches to this task      */
 #endif
                 OSCtxSwCtr++;                          /* Increment context switch counter             */
-				printf("\n%2d %s %2d %2d", OSTime, "Complete", OSPrioCur, OSPrioHighRdy);
+				OS_Printf("\n%2d %s %2d %2d", OSTime, "Complete", OSPrioCur, OSPrioHighRdy);
 
                 OS_TASK_SW();                          /* Perform a context switch                     */
             }
@@ -1223,12 +1223,12 @@ static  void  OS_SchedNew (void)
 
     y             = OSUnMapTbl[OSRdyGrp];
     OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);*/
-	OS_TCB * temp = OSTCBList;
+	OS_TCB * temp = OSTCBList;//获取TCB链表
 	INT8U prio = OS_LOWEST_PRIO;
-	INT32U max = -1;
-	while (temp)
+	INT32U max = -1;//寻找最高优先级的周期T
+	while (temp)//采用EDF算法进行EDF调度
 	{
-		int ready = OSRdyTbl[temp->OSTCBY]& temp->OSTCBBitX;
+		int ready = OSRdyTbl[temp->OSTCBY]& temp->OSTCBBitX;//检查当前任务是否就绪
 		if (ready && temp->T < max ) {
 			prio = temp->OSTCBPrio;
 			max = temp->T;

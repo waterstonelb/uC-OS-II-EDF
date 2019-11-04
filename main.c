@@ -32,7 +32,7 @@
 */
 
 OS_STK        AppStartTaskStk[3][TASK_STK_SIZE];
-OS_EVENT  *   xhl;
+OS_EVENT  *   xhl;//信号量
 
 /*
 *********************************************************************************************************
@@ -69,7 +69,7 @@ void main(int argc, char *argv[])
 
     OSInit();                              /* Initialize "uC/OS-II, The Real-Time Kernel"                                      */
 
-	xhl = OSSemCreate(1);
+	xhl = OSSemCreate(1);//信号量创建
 
     /*OSTaskCreateExt(AppStartTask,
                     (void *)0,
@@ -80,10 +80,10 @@ void main(int argc, char *argv[])
                     TASK_STK_SIZE,
                     (void *)0,
                     OS_TASK_OPT_STK_CHK | OS_TASK_OPT_STK_CLR);*/
-	OSTaskCreate(Task1, (void*)0, (OS_STK *)&AppStartTaskStk[0][TASK_STK_SIZE - 1], 1);
+	OSTaskCreate(Task1, (void*)0, (OS_STK *)&AppStartTaskStk[0][TASK_STK_SIZE - 1], 1);//新建三个任务
 	OSTaskCreate(Task2, (void*)0, (OS_STK *)&AppStartTaskStk[1][TASK_STK_SIZE - 1], 2);
 	OSTaskCreate(Task3, (void*)0, (OS_STK *)&AppStartTaskStk[2][TASK_STK_SIZE - 1], 3);
-	OSTCBPrioTbl[1]->T = 4;
+	OSTCBPrioTbl[1]->T = 4;//在TCB结构体新增T，C参数，在此处进行初始化
 	OSTCBPrioTbl[2]->T = 5;
 	OSTCBPrioTbl[3]->T = 10;
 	OSTCBPrioTbl[62]->T = -1;
@@ -143,23 +143,22 @@ void  AppStartTask (void *p_arg)
         OSTimeDlyHMSM(0, 0, 1, 0);       
     }
 }
-void  Task1(void *p_arg)
+void  Task1(void *p_arg)//任务定义
 {
 
-	int start = 0, end, toDly, C = 1;
-	INT8U err;
+	int end, toDly, C = 1;//定义end，任务执行完之后的系统时间，toDly，需要延时时间
+	INT8U err;//信号量错误地址
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
-		OSSemPend(xhl, 9999, &err);
-		while (OSTCBCur->C < C);
-		OSSemPost(xhl);
+		OSSemPend(xhl, 9999, &err);//上锁
+		while (OSTCBCur->C < C);//任务执行C个时间
+		OSSemPost(xhl);//解锁
 		end = OSTimeGet();
 		toDly = OSTCBCur->T-end;
 		if (toDly < 0)
 		{
-			OS_Printf("\nfailed");
+			OS_Printf("\nfailed");//调度失败时的输出
 		}
-		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 4;
 		OSTimeDly(toDly);
@@ -169,13 +168,12 @@ void  Task2(void *p_arg)
 {
 
 
-	int start = 0, end, toDly,C=2;
+	int end, toDly,C=2;
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
 		while (OSTCBCur->C < C);
 		end = OSTimeGet();
 		toDly = OSTCBCur->T - end;
-		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 5;
 		OSTimeDly(toDly);
@@ -184,7 +182,7 @@ void  Task2(void *p_arg)
 void  Task3(void *p_arg)
 {
 
-	int start = 0, end, toDly,C=2;
+	int end, toDly,C=2;
 	INT8U err;
 	while (TRUE)                                 /* Task body, always written as an infinite loop.                             */
 	{
@@ -193,7 +191,6 @@ void  Task3(void *p_arg)
 		OSSemPost(xhl);
 		end = OSTimeGet();
 		toDly = OSTCBCur->T - end;
-		start += OSTCBCur->T;
 		OSTCBCur->C = 0;
 		OSTCBCur->T += 10;
 		OSTimeDly(toDly);
